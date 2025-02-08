@@ -1,28 +1,31 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "foo",
-    "description": "## foo.KnowledgeAssessmentReports"
+    "title": "googleapi_withbody",
+    "description": "## googleapi_withbody.FooService"
   },
   "paths": {
-    "/a": {
-      "get": {
+    "/v1/sendData": {
+      "post": {
         "tags": [
-          "foo.KnowledgeAssessmentReports"
+          "googleapi_withbody.FooService"
         ],
-        "summary": "Score",
-        "operationId": "foo.KnowledgeAssessmentReports.Score",
-        "parameters": [
-          {
-            "name": "b.c.name",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "name"
+        "summary": "GetFoo",
+        "operationId": "googleapi_withbody.FooService.GetFoo",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/googleapi_withbody.SomethingData"
+                  }
+                ],
+                "title": "data"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "default": {
             "description": "Error",
@@ -39,7 +42,48 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/foo.A"
+                  "$ref": "#/components/schemas/googleapi_withbody.GetFooResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/sendData2": {
+      "post": {
+        "tags": [
+          "googleapi_withbody.FooService"
+        ],
+        "summary": "GetFoo2",
+        "operationId": "googleapi_withbody.FooService.GetFoo2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string",
+                "title": "prop1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/connect.error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/googleapi_withbody.GetFooResponse"
                 }
               }
             }
@@ -50,85 +94,44 @@
   },
   "components": {
     "schemas": {
-      "foo.A": {
+      "googleapi_withbody.GetFooRequest": {
         "type": "object",
         "properties": {
-          "b": {
+          "data": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/foo.A.B"
+                "$ref": "#/components/schemas/googleapi_withbody.SomethingData"
               }
             ],
-            "title": "b"
+            "title": "data"
           }
         },
-        "title": "A",
-        "required": [
-          "b"
-        ],
+        "title": "GetFooRequest",
         "additionalProperties": false
       },
-      "foo.A.B": {
+      "googleapi_withbody.GetFooResponse": {
         "type": "object",
-        "properties": {
-          "c": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/foo.A.B.C"
-              }
-            ],
-            "title": "c",
-            "description": "the learner whose scores are being reported"
-          }
-        },
-        "title": "B",
-        "required": [
-          "c"
-        ],
+        "title": "GetFooResponse",
         "additionalProperties": false
       },
-      "foo.A.B.C": {
+      "googleapi_withbody.SomethingData": {
         "type": "object",
         "properties": {
-          "name": {
+          "prop1": {
             "type": "string",
-            "title": "name"
+            "title": "prop1"
+          },
+          "prop2": {
+            "type": "string",
+            "title": "prop2"
+          },
+          "prop3": {
+            "type": "string",
+            "title": "prop3"
           }
         },
-        "title": "C",
-        "required": [
-          "name"
-        ],
+        "title": "SomethingData",
         "additionalProperties": false
-      },
-      "encoding": {
-        "title": "encoding",
-        "enum": [
-          "proto",
-          "json"
-        ],
-        "description": "Define which encoding or 'Message-Codec' to use"
-      },
-      "base64": {
-        "type": "boolean",
-        "title": "base64",
-        "description": "Specifies if the message query param is base64 encoded, which may be required for binary data"
-      },
-      "compression": {
-        "title": "compression",
-        "enum": [
-          "identity",
-          "gzip",
-          "br"
-        ],
-        "description": "Which compression algorithm to use for this request"
-      },
-      "connect": {
-        "title": "connect",
-        "enum": [
-          "v1"
-        ],
-        "description": "Define the version of the Connect protocol"
       },
       "connect-protocol-version": {
         "type": "number",
@@ -207,7 +210,7 @@
   "security": [],
   "tags": [
     {
-      "name": "foo.KnowledgeAssessmentReports"
+      "name": "googleapi_withbody.FooService"
     }
   ]
 }

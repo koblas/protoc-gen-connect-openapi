@@ -5,17 +5,17 @@ import (
 	"strings"
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	"github.com/bufbuild/protovalidate-go/resolver"
+	"github.com/bufbuild/protovalidate-go/resolve"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/utils"
+	"github.com/sudorandom/protoc-gen-connect-openapi/internal/converter/options"
 	"github.com/sudorandom/protoc-gen-connect-openapi/internal/converter/util"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"gopkg.in/yaml.v3"
 )
 
-func SchemaWithMessageAnnotations(schema *base.Schema, desc protoreflect.MessageDescriptor) *base.Schema {
-	r := resolver.DefaultResolver{}
-	constraints := r.ResolveMessageConstraints(desc)
+func SchemaWithMessageAnnotations(opts options.Options, schema *base.Schema, desc protoreflect.MessageDescriptor) *base.Schema {
+	constraints := resolve.MessageConstraints(desc)
 	if constraints == nil || constraints.GetDisabled() {
 		return schema
 	}
@@ -23,9 +23,8 @@ func SchemaWithMessageAnnotations(schema *base.Schema, desc protoreflect.Message
 	return schema
 }
 
-func SchemaWithFieldAnnotations(schema *base.Schema, desc protoreflect.FieldDescriptor, onlyScalar bool) *base.Schema {
-	r := resolver.DefaultResolver{}
-	constraints := r.ResolveFieldConstraints(desc)
+func SchemaWithFieldAnnotations(opts options.Options, schema *base.Schema, desc protoreflect.FieldDescriptor, onlyScalar bool) *base.Schema {
+	constraints := resolve.FieldConstraints(desc)
 	if constraints == nil {
 		return schema
 	}
@@ -33,24 +32,23 @@ func SchemaWithFieldAnnotations(schema *base.Schema, desc protoreflect.FieldDesc
 	if constraints.Required != nil && *constraints.Required {
 		parent := schema.ParentProxy.Schema()
 		if parent != nil {
-			parent.Required = util.AppendStringDedupe(parent.Required, desc.JSONName())
+			parent.Required = util.AppendStringDedupe(parent.Required, util.MakeFieldName(opts, desc))
 		}
 	}
 	updateSchemaWithFieldConstraints(schema, constraints, onlyScalar)
 	return schema
 }
 
-func PopulateParentProperties(parent *base.Schema, desc protoreflect.FieldDescriptor) *base.Schema {
+func PopulateParentProperties(opts options.Options, parent *base.Schema, desc protoreflect.FieldDescriptor) *base.Schema {
 	if parent == nil {
 		return parent
 	}
-	r := resolver.DefaultResolver{}
-	constraints := r.ResolveFieldConstraints(desc)
+	constraints := resolve.FieldConstraints(desc)
 	if constraints == nil {
 		return parent
 	}
 	if constraints.Required != nil && *constraints.Required {
-		parent.Required = util.AppendStringDedupe(parent.Required, desc.JSONName())
+		parent.Required = util.AppendStringDedupe(parent.Required, util.MakeFieldName(opts, desc))
 	}
 	return parent
 }

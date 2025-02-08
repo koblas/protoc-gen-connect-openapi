@@ -94,6 +94,8 @@ func httpRuleToPathMap(opts options.Options, md protoreflect.MethodDescriptor, r
 				Description: util.FormatComments(loc),
 				Schema:      schema.FieldToSchema(opts, nil, field),
 			})
+		} else {
+			slog.Warn("path field not found", slog.String("param", param))
 		}
 	}
 
@@ -116,16 +118,15 @@ func httpRuleToPathMap(opts options.Options, md protoreflect.MethodDescriptor, r
 		}
 
 	default:
-		fields := md.Input().Fields()
-		for i := 0; i < fields.Len(); i++ {
-			field := fields.Get(i)
-			if field.JSONName() != rule.Body {
-				continue
-			}
+		if field, _ := resolveField(md.Input(), rule.Body); field != nil {
 			loc := fd.SourceLocations().ByDescriptor(field)
+			bodySchema := schema.FieldToSchema(opts, nil, field)
 			op.RequestBody = &v3.RequestBody{
 				Description: util.FormatComments(loc),
+				Content:     util.MakeMediaTypes(opts, bodySchema, false, false),
 			}
+		} else {
+			slog.Warn("body field not found", slog.String("param", rule.Body))
 		}
 	}
 
@@ -178,7 +179,8 @@ func httpRuleToPathMap(opts options.Options, md protoreflect.MethodDescriptor, r
 	for _, binding := range rule.AdditionalBindings {
 		pathMap := httpRuleToPathMap(opts, md, binding)
 		for pair := pathMap.First(); pair != nil; pair = pair.Next() {
-			paths.Set(pair.Key(), pair.Value())
+			path := util.MakePath(opts, pair.Key())
+			paths.Set(path, pair.Value())
 		}
 	}
 	return paths
@@ -265,12 +267,19 @@ func flattenToParams(opts options.Options, md protoreflect.MessageDescriptor, js
 		case protoreflect.MessageKind:
 			params = append(params, flattenToParams(opts, field.Message(), paramName+".", seen)...)
 		default:
+			parent := &base.Schema{}
+			schema := schema.FieldToSchema(opts, base.CreateSchemaProxy(parent), field)
+			var required *bool
+			if len(parent.Required) > 0 {
+				required = util.BoolPtr(true)
+			}
 			loc := field.ParentFile().SourceLocations().ByDescriptor(field)
 			params = append(params, &v3.Parameter{
 				Name:        paramName,
 				In:          "query",
 				Description: util.FormatComments(loc),
-				Schema:      schema.FieldToSchema(opts, nil, field),
+				Schema:      schema,
+				Required:    required,
 			})
 		}
 	}

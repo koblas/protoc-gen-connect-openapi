@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/sudorandom/protoc-gen-connect-openapi/internal/converter/annotations"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -29,6 +28,8 @@ type Options struct {
 	WithProtoNames bool
 	// Path is the output OpenAPI path.
 	Path string
+	// PathPrefix is a prefix that is prepended to every HTTP path.
+	PathPrefix string
 	// TrimUnusedTypes will remove types that aren't referenced by a service.
 	TrimUnusedTypes bool
 	// WithProtoAnnotations will add some protobuf annotations for descriptions
@@ -43,9 +44,9 @@ type Options struct {
 	// Services filters which services will be used for generating OpenAPI spec.
 	Services []protoreflect.FullName
 
-	MessageAnnotator        annotations.MessageAnnotator
-	FieldAnnotator          annotations.FieldAnnotator
-	FieldReferenceAnnotator annotations.FieldReferenceAnnotator
+	MessageAnnotator        MessageAnnotator
+	FieldAnnotator          FieldAnnotator
+	FieldReferenceAnnotator FieldReferenceAnnotator
 }
 
 func (opts Options) HasService(serviceName protoreflect.FullName) bool {
@@ -112,6 +113,8 @@ func FromString(s string) (Options, error) {
 			}
 		case strings.HasPrefix(param, "path="):
 			opts.Path = param[5:]
+		case strings.HasPrefix(param, "path-prefix="):
+			opts.PathPrefix = param[12:]
 		case strings.HasPrefix(param, "format="):
 			format := param[7:]
 			switch format {
